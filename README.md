@@ -7,8 +7,8 @@ Requirements:
 - python numpy
 - python pandas
 - python multiprocessing
-- python XGBoost
-- Cython
+- python XGBoost (only required for training)
+- Cython (http://cython.org/)
 
 To compile the Cython `.pyx` files:
 
