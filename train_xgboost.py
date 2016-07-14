@@ -33,11 +33,15 @@ def main():
 	psmids = pd.read_pickle(args.psmids)
 	#psmids = psmids.PSMid
 	
-	vectors = vectors[targets.target>0]
-	psmids = psmids[targets.target>0].PSMid
-	targets = targets[targets.target>0]
 	
-	targets = np.log2(targets)
+	#vectors = vectors[targets.target>0]
+	#psmids = psmids[targets.target>0].PSMid
+	#targets = targets[targets.target>0]
+
+	psmids = psmids.PSMid
+
+	
+	targets = np.log2(targets+10)
 	
 	#selecting charge +2 peptides only!!
 	np.random.seed(1)
@@ -73,7 +77,7 @@ def main():
 	         "silent":1,
 	         "eta":0.3,
 	         #"max_delta_step":1,
-	         "max_depth":9,
+	         "max_depth":10,
 			 "gamma":0.1,
 			 "min_child_weight":10,
 			 "subsample":1,

@@ -20,20 +20,13 @@ def main():
 	args = parser.parse_args()
 
 	num_cpu = int(args.num_cpu)
-
-	#ptm_map = {}
-	#ptm_map['CAM'] = 57.02146
-	#ptm_map['Oxidation'] = 15.994915
 	
-	#load tables with chemical properties of amino acids
-	chemdata = pickle.load(open("amino_acid_properties.pkl","rb" ))
-
 	#a_map converts the peptide amio acids to integers
 	aminos = ['A','C','D','E','F','G','H','I','K','L','M','N','P','Q','R','S','T','V','W','Y']
 	a_map = {}
 	for i,a in enumerate(aminos):
 		a_map[a] = i
-		
+			
 	data = pd.read_csv(args.pep_file,sep=' ',index_col=False)
 	data['peplen'] = data['peptide'].apply(return_length)
 	data = data.fillna('-')
@@ -160,7 +153,7 @@ def process_file(pid,spec_file,titles,data,a_map):
 				peptide = peptides[title]
 				mods = modifications[title]
 				peplen = len(peptide)
-				modified = [0.]*(peplen+2)
+				modified = [0.]*(peplen)
 				#k = False
 				#if mods != '-':
 				#	l = mods.split('|')
@@ -186,8 +179,8 @@ def process_file(pid,spec_file,titles,data,a_map):
 				targets_y_1.append(targets[l:])
 				#targets_y_2.append(targets[3*l:])
 				modified = modified.astype(np.uint16)
-				vectors_b.append(ms2pipfeatures_cython.compute_vector_nopos(peptide,modified,charge,0))
-				vectors_y.append(ms2pipfeatures_cython.compute_vector_nopos(peptide,modified,charge,1))
+				vectors_b.append(ms2pipfeatures_cython.compute_vectors(peptide,modified,charge))
+				vectors_y.append(ms2pipfeatures_cython.compute_vectors(peptide[::-1],modified[::-1],charge))
 			
 				psmids.extend([psmids_count]*l)
 				psmids_count += 1
@@ -195,32 +188,43 @@ def process_file(pid,spec_file,titles,data,a_map):
 	return (np.array(psmids,dtype=np.uint32),vectors_b,vectors_y,targets_b_1,targets_y_1)
 
 def get_feature_names():
+	aminos = ['A','C','D','E','F','G','H','I','K','L','M','N','P','Q','R','S','T','V','W','Y']
 	names = ['peplen','ionnumber','ionnumber_rel','pmz']
 	for c in ['bas','hydro','heli','pI']:
 		names.append('mean_'+c)
 	names.append("mz_ion")
 	names.append("mz_ion_other")
 	names.append("charge")
-	names.append("iontype")
+	names.append("modi")
 	for k in ['0','1','-2','-1']:
-		#for a in aminos:
-		#	names.append(a+'_'+k)
 		for c in ['bas','hydro','heli','pI']:
 			names.append(c+'_'+k)
-		#names.append('mod_'+k)
 	for k in ['i','i-1','i+1','i+2']:
-		#for a in aminos:
-		#	names.append(a+'_'+k)	
 		for c in ['bas','hydro','heli','pI']:
 			names.append(c+'_'+k)
-		#names.append('mod_'+k)
 	for c in ['bas','hydro','heli','pI']:
+		names.append('sum_ion_'+c)
 		names.append('mean_ion_'+c)
-		names.append('mean_ion_other_'+c)
 		names.append('max_ion_'+c)
-		names.append('max_ion_other_'+c)
 		names.append('min_ion_'+c)
+		names.append('sum_ion_other_'+c)
+		names.append('mean_ion_other_'+c)
+		names.append('max_ion_other_'+c)
 		names.append('min_ion_other_'+c)
+	c="mz"
+	names.append('sum_ion_'+c)
+	names.append('mean_ion_'+c)
+	names.append('max_ion_'+c)
+	names.append('min_ion_'+c)
+	names.append('sum_ion_other_'+c)
+	names.append('mean_ion_other_'+c)
+	names.append('max_ion_other_'+c)
+	names.append('min_ion_other_'+c)
+
+	for k in ['0','-1','i','i+1']:
+		for a in aminos:
+			names.append(a+'_'+k)
+
 	return names
 
 def scan_spectrum_file(filename):

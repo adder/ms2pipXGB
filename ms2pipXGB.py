@@ -17,8 +17,8 @@ def main():
 	parser = argparse.ArgumentParser(description='MS2PIP on XGBoost')    
 	parser.add_argument('pep_file', metavar='<.PEPREC file>',
 					 help='file containing peptide identifications')
-	parser.add_argument('spec_file', metavar='<.PEPREC.mgf file>',
-					 help='file containing ms2 spectra')
+	parser.add_argument('-s','--spectra', metavar='FILE',action="store", dest='spec_file',default='None',
+					 help='.mgf spectrum file for evaluation')
 	parser.add_argument('-c','--num_cpu', metavar='INT',action="store", dest='num_cpu',default='23',
 					 help='number of cores')
 
@@ -158,8 +158,10 @@ def process_file(pid,spec_file,titles,data,a_map):
 				if not title in peptides: continue
 				peptide = peptides[title]
 				mods = modifications[title]
+				if mods != '-': continue
+				if charge != 2: continue
 				peplen = len(peptide)
-				modified = [0.]*(peplen+2)
+				modified = [0.]*(peplen)
 				#k = False
 				#if mods != '-':
 				#	l = mods.split('|')
@@ -187,12 +189,12 @@ def process_file(pid,spec_file,titles,data,a_map):
 				modified = modified.astype(np.uint16)
 				#vectors_b.append(ms2pipfeatures_cython.compute_vector_nopos(peptide,modified,charge,0))
 				#vectors_y.append(ms2pipfeatures_cython.compute_vector_nopos(peptide,modified,charge,1))
-				v = ms2pipfeatures_cython.compute_vector_nopos(peptide,modified,charge,0)
+				v = ms2pipfeatures_cython.compute_vectors(peptide,modified,charge)
 				tmpp = []
 				for j,vv in enumerate(v):
 					tmpp.append(vectors_b_pkl.myscore(vv))
 				p_b.append(pearsonr(tmpp,targets[:l])[0])
-				v = ms2pipfeatures_cython.compute_vector_nopos(peptide,modified,charge,1)
+				v = ms2pipfeatures_cython.compute_vectors(peptide[::-1],modified[::-1],charge)
 				tmpp = []
 				for j,vv in enumerate(v):
 					tmpp.append(vectors_y_pkl.myscore(vv))

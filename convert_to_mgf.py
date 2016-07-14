@@ -1,7 +1,15 @@
 import sys
 
+PTMmap = {}
+PTMmap['Oxidation'] = '15.994915'
+PTMmap['Acetyl'] = '42.010565'
+PTMmap['Carbamidomethyl'] = '57.02146'
+PTMmap['Pyro-carbamidomethyl'] = ' 39.994915'
+PTMmap['Glu->pyro-Glu'] = '-18.010565'
+PTMmap['Gln->pyro-Glu'] = '-17.026549'
+
 fpip = open(sys.argv[1]+'.PEPREC','w')
-fpip.write("spec_id modifications peptide\n")
+fpip.write("spec_id modifications peptide charge\n")
 fmgf = open(sys.argv[1]+'.PEPREC.mgf','w')
 fmeta = open(sys.argv[1]+'.PEPREC.meta','w')
 
@@ -26,18 +34,30 @@ with open(sys.argv[1]) as f:
 					sys.stderr.write(prev)
 
 				tmp = mods.split('/')
+				
+				if tmp[0] != '0':
+					specid += 1
+					read_spec = False
+					mgf = ""
+					continue
+
+				if (charge != '2') & (charge != 3):
+					specid += 1
+					read_spec = False
+					mgf = ""
+					continue
+													
 				if tmp[0] != '0':
 					m = ""
 					for i in range(1,len(tmp)):
 						tmp2=tmp[i].split(',')
-						t = int(tmp2[0])
-						if t == 0:
-							m += '0|'+tmp2[2] + '|'
-						else:
-							m += str(t+1)+'|'+tmp2[2] + '|'
-					fpip.write('%s%i %s %s\n'%(sys.argv[2],specid,m[:-1],peptide))
+						if not tmp2[2] in PTMmap:
+							print tmp2[2]
+							dd
+						m += tmp2[0] + '|' + PTMmap[tmp2[2]] + '|'
+					fpip.write('%s%i %s %s %s\n'%(sys.argv[2],specid,m[:-1],peptide.replace('(O)',''),charge))
 				else:
-					fpip.write('%s%i  %s\n'%(sys.argv[2],specid,peptide))
+					fpip.write('%s%i  %s %s\n'%(sys.argv[2],specid,peptide.replace('(O)',''),charge))
 
 				fmeta.write('%s%i %s %s %s %s %s\n'%(sys.argv[2],specid,charge,peptide,parentmz,purity,HCDenergy))
 					
