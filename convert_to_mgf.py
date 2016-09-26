@@ -41,7 +41,7 @@ with open(sys.argv[1]) as f:
 					mgf = ""
 					continue
 
-				if (charge != '2') & (charge != 3):
+				if (charge != '2') & (charge != '3'):
 					specid += 1
 					read_spec = False
 					mgf = ""
